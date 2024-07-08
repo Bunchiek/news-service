@@ -1,5 +1,6 @@
 package com.example.newsservice.web.controller;
 
+import com.example.newsservice.aop.Secured;
 import com.example.newsservice.mapper.NewsMapper;
 import com.example.newsservice.model.News;
 import com.example.newsservice.service.NewsService;
@@ -47,16 +48,16 @@ public class NewsController {
     }
 
     @PutMapping("/{id}")
-
+    @Secured(checkOwnership = true)
     public ResponseEntity<NewsResponse> update(@PathVariable("id") Long newsId,
-                                               @RequestBody @Valid UpsertNewsRequest request, @RequestParam("UserId") Long userId) {
-        News updatedNews = newsService.update(newsMapper.requestToNews(newsId, request), userId);
+                                               @RequestBody @Valid UpsertNewsRequest request) {
+        News updatedNews = newsService.update(newsMapper.requestToNews(newsId, request));
         return ResponseEntity.ok(newsMapper.newsToResponse(updatedNews));
     }
-
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id, @RequestParam("UserId") Long userId) {
-        newsService.deleteById(id, userId);
+    @Secured(roles = {"ROLE_ADMIN", "ROLE_MODERATOR"}, checkOwnership = true)
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        newsService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 }

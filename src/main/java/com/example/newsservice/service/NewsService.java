@@ -10,6 +10,6 @@ public interface NewsService {
     List<News> findAll(NewsFilter filter);
     News findById(Long id);
     News save(News news);
-    News update(News news, Long userId);
-    void deleteById(Long id, Long userId);
+    News update(News news);
+    void deleteById(Long id);
 }

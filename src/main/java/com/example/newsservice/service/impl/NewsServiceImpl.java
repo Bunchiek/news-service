@@ -55,7 +55,7 @@ public class NewsServiceImpl implements NewsService {
 
     @Override
     @Editable
-    public News update(News news, Long userId) {
+    public News update(News news) {
         User user = userService.findById(news.getUser().getId());
         Category category = categoryService.findById(news.getCategory().getId());
         News existedNews = findById(news.getId());
@@ -67,7 +67,7 @@ public class NewsServiceImpl implements NewsService {
 
     @Override
     @Editable
-    public void deleteById(Long id, Long userId) {
+    public void deleteById(Long id) {
         newsRepository.deleteById(id);
     }
 }
