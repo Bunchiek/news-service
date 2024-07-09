@@ -1,5 +1,6 @@
 package com.example.newsservice.web.controller;
 
+import com.example.newsservice.aop.Secured;
 import com.example.newsservice.mapper.CommentMapper;
 import com.example.newsservice.model.Comment;
 import com.example.newsservice.service.CommentService;
@@ -35,6 +36,7 @@ public class CommentController {
     }
 
     @PutMapping("/{id}")
+    @Secured(checkOwnership = true)
     public ResponseEntity<CommentResponse> update(@PathVariable("id") Long commentId,
                                                   @RequestBody @Valid UpsertCommentRequest request, @RequestParam("UserId") Long userId) {
         Comment updatedComment = commentService.update(commentMapper.requestToComment(commentId, request),userId);
@@ -42,6 +44,7 @@ public class CommentController {
     }
 
     @DeleteMapping("/{id}")
+    @Secured(roles = {"ROLE_ADMIN", "ROLE_MODERATOR"}, checkOwnership = true)
     public ResponseEntity<Void> delete(@PathVariable Long id, @RequestParam("UserId") Long userId) {
         commentService.deleteById(id, userId);
         return ResponseEntity.noContent().build();

@@ -13,6 +13,3 @@ spring:
       schema: app_schema
       connection-init-sql: create schema if not exists app_schema
       connection-timeout: 10000
-
-app:
-  secret: "qwerty"

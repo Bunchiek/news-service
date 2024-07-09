@@ -1,6 +1,5 @@
 package com.example.newsservice.service.impl;
 
-import com.example.newsservice.aop.Editable;
 import com.example.newsservice.exception.EntityNotFoundException;
 import com.example.newsservice.model.Comment;
 import com.example.newsservice.model.News;
@@ -44,7 +43,6 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    @Editable
     public Comment update(Comment comment, Long userId) {
         User user = userService.findById(comment.getUser().getId());
         News news = newsService.findById(comment.getNews().getId());
@@ -57,7 +55,6 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    @Editable
     public void deleteById(Long id, Long userId) {
         commentRepository.deleteById(id);
     }

@@ -33,20 +33,7 @@ import java.util.Objects;
 public class SecurityAspect {
 
     private final NewsService newsService;
-    private final UserService userService;
     private final CommentService commentService;
-
-//    @Before("@annotation(Editable)")
-//    public void logBefore() {
-//        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-//        HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
-//        var pathVariables = (Map<String, String>) request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
-//        News editedNews = newsService.findById(Long.valueOf(pathVariables.get("id")));
-//        Long userId = Long.valueOf(request.getParameter("UserId"));
-//        if(!Objects.equals(editedNews.getUser().getId(), userId)){
-//            throw new IncorrectUserException(MessageFormat.format("Пользователь с ID {0} не может редактировать эту запись!", userId));
-//        }
-//    }
 
     @Before("@annotation(secured) && args(resourceId,..)")
     public void checkSecurity(JoinPoint joinPoint, Secured secured, Long resourceId) {
@@ -56,6 +43,9 @@ public class SecurityAspect {
             throw new SecurityException("Пользователь не прошел аутентификацию");
         }
 
+        boolean isAdminOrModerator = authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN") || authority.getAuthority().equals("ROLE_MODERATOR"));
+
         Object principal = authentication.getPrincipal();
         String currentUsername;
         if (principal instanceof UserDetails) {
@@ -63,11 +53,11 @@ public class SecurityAspect {
         } else if (principal instanceof String) {
             currentUsername = (String) principal;
         } else {
-            throw new SecurityException("Unsupported principal type: " + principal.getClass().getName());
+            throw new SecurityException("Неподдерживаемый тип аутентификации: " + principal.getClass().getName());
         }
 
-        if (secured.roles().length > 0) {
-            checkRoles(currentUsername, secured.roles());
+        if (secured.roles().length > 0 && !isAdminOrModerator) {
+            checkOwnership(joinPoint, resourceId, currentUsername);
         }
 
         if (secured.checkOwnership()) {
@@ -75,9 +65,6 @@ public class SecurityAspect {
         }
     }
 
-    private void checkRoles(String username, String[] roles) {
-
-    }
 
     private void checkOwnership(JoinPoint joinPoint, Long resourceId, String currentUsername) {
         String resourceName = joinPoint.getSignature().getDeclaringTypeName();
@@ -86,21 +73,21 @@ public class SecurityAspect {
         } else if (resourceName.contains("Comment")) {
             checkCommentOwnership(resourceId, currentUsername);
         } else {
-            throw new SecurityException("Unsupported resource type for ownership check");
+            throw new SecurityException("Неподдерживаемый тип ресурса");
         }
     }
 
     private void checkNewsOwnership(Long newsId, String currentUsername) {
         News news = newsService.findById(newsId);
         if (!news.getUser().getUsername().equals(currentUsername)) {
-            throw new IncorrectUserException("User is not the owner of this news");
+            throw new IncorrectUserException("Пользователь не является владельцем этой новости");
         }
     }
 
     private void checkCommentOwnership(Long commentId, String currentUsername) {
         Comment comment = commentService.findById(commentId);
         if (!comment.getUser().getUsername().equals(currentUsername)) {
-            throw new IncorrectUserException("User is not the owner of this comment");
+            throw new IncorrectUserException("Пользователь не является владельцем этого комментария");
         }
     }
 

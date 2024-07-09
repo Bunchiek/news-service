@@ -34,7 +34,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findByUsername(String username) {
         User user = userRepository.findByUsername(username).orElseThrow();
-        System.out.println("nu dela");
         return userRepository.findByUsername(username)
                 .orElseThrow(()->new RuntimeException("Username not found!"));
     }
